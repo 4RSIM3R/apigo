@@ -1,0 +1,14 @@
+*.o
+*.a
+*.so
+*.test
+*.prof
+*.out
+*.log
+
+vendor/
+tmp/
+
+# IDE specific files
+.vscode
+.idea
