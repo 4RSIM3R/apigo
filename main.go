@@ -17,7 +17,7 @@ import (
 var db *sql.DB
 var err error
 
-func main() {
+func init() {
 	godotErr := godotenv.Load()
 	if godotErr != nil {
 		log.Fatal("Error loading .env file")
@@ -42,10 +42,11 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	defer db.Close()
 	fmt.Println("Database Connection Sucess")
+}
 
+func main() {
+	defer db.Close()
 	handleRequest()
 }
 
@@ -67,8 +68,6 @@ func articles(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	defer result.Close()
 
 	for result.Next() {
 		var article constant.Article
@@ -98,14 +97,44 @@ func addArticle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("Author : ", article.Author)
-	insertQuery := fmt.Sprintf("INSERT INTO konten(title, description, author) VALUES ('%s', '%s', '%s')", article.Title, article.Desc, article.Author)
-	fmt.Println(insertQuery)
-	insert, err := db.Query(insertQuery)
+	// insertQuery := fmt.Sprintf("")
+	// fmt.Println(insertQuery)
+	_, err = db.Query("INSERT INTO konten(title, description, author) VALUES (?, ?, ?)", article.Title, article.Desc, article.Author)
 	if err != nil {
 		fmt.Println(err.Error())
 		panic(err.Error())
 	}
-	defer insert.Close()
+	fmt.Fprintf(w, "Insert Data Success")
+}
+
+func editArticle(w http.ResponseWriter, r *http.Request) {
+	urlParams := mux.Vars(r)
+	kontenID := urlParams["id"]
+	fmt.Fprintf(w, "id: %v\n", urlParams["id"])
+	var article constant.Article
+	err := json.NewDecoder(r.Body).Decode(&article)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	_, err = db.Query("UPDATE konten SET title=?,description=?,author=? WHERE id=?", article.Title, article.Desc, article.Author, kontenID)
+	if err != nil {
+		fmt.Println(err.Error())
+		panic(err.Error())
+	}
+	fmt.Fprintf(w, "Update Data Success")
+}
+
+func deleteArticle(w http.ResponseWriter, r *http.Request) {
+	urlParams := mux.Vars(r)
+	kontenID := urlParams["id"]
+	fmt.Fprintf(w, "id: %v\n", urlParams["id"])
+	_, err = db.Query("DELETE FROM konten WHERE id = ?", kontenID)
+	if err != nil {
+		fmt.Println(err.Error())
+		panic(err.Error())
+	}
+	fmt.Fprintf(w, "Delete Data Success")
 }
 
 // Routing
@@ -114,5 +143,7 @@ func handleRequest() {
 	router.HandleFunc("/", home)
 	router.HandleFunc("/article", articles)
 	router.HandleFunc("/article/add", addArticle).Methods("POST")
+	router.HandleFunc("/article/edit/{id:[0-9]+}", editArticle).Methods("PUT")
+	router.HandleFunc("/article/delete/{id:[0-9]+}", deleteArticle).Methods("DELETE")
 	log.Fatal(http.ListenAndServe(":8081", router))
 }

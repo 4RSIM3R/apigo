@@ -14,8 +14,6 @@ Bismillah, Learn how to build simple API in golang with Mysql. Maybe Next i will
 
 ### What Next ?
 
-- [ ] Completing CRUD
-- [ ] Prettify response 
-- [x] Using JWT for auth
-- [x] Implementing ORM (gorm)
+- [x] Completing CRUD
+- [ ] Using JWT for auth
 

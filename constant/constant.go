@@ -11,7 +11,6 @@ type Article struct {
 type Articles []Article
 
 // Sucess is exporeted struct
-// type Sucess struct {
-// 	Message string `json:message`
-// 	data interface{}
-// }
+type Sucess struct {
+	Message string `json:"message"`
+}
